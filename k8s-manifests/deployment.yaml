@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service-deployment
+  labels:
+    app: product-service
+spec:
+  replicas: 2 # Let's run 2 copies of your app for high availability!
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+      - name: product-service-container
+        # Notice we are using YOUR exact image from Docker Hub here!
+        image: sumit0004/product-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        # Pointing the app to our local machine's database
+        - name: DB_HOST
+          value: "host.minikube.internal"
