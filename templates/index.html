@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservice Storefront</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .product-card { transition: transform 0.2s; }
+        .product-card:hover { transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">📦 DevOps E-Commerce Store</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search for products...">
+            </div>
+            <div class="col-md-6">
+                <select id="categoryFilter" class="form-select">
+                    <option value="all">All Categories</option>
+                    </select>
+            </div>
+        </div>
+
+        <div class="row" id="product-grid">
+            <div class="text-center mt-5" id="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Fetching products from database...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allProducts = [];
+
+        // Fetch data from your Python API
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/products');
+                const products = await response.json();
+                allProducts = products;
+                
+                populateCategories(products);
+                renderProducts(products);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+                document.getElementById('product-grid').innerHTML = 
+                    `<div class="alert alert-danger">Error loading products from the database.</div>`;
+            }
+        }
+
+        // Extract unique categories and populate the dropdown
+        function populateCategories(products) {
+            const categories = [...new Set(products.map(p => p.category))];
+            const select = document.getElementById('categoryFilter');
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                select.appendChild(option);
+            });
+        }
+
+        // Draw the product cards on the screen
+        function renderProducts(products) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = ''; // Clear loading spinner
+
+            if (products.length === 0) {
+                grid.innerHTML = `<div class="col-12 text-center"><p class="text-muted">No products found.</p></div>`;
+                return;
+            }
+
+            products.forEach(product => {
+                const card = `
+                    <div class="col-md-4 col-lg-3 mb-4">
+                        <div class="card h-100 product-card">
+                            <div class="card-body">
+                                <span class="badge bg-secondary mb-2">${product.category}</span>
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="card-text text-muted small">${product.description.substring(0, 60)}...</p>
+                                <h4 class="text-success">$${product.price}</h4>
+                            </div>
+                            <div class="card-footer bg-white border-top-0">
+                                <button class="btn btn-primary w-100">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        // Search Bar Event Listener
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(searchTerm));
+            renderProducts(filtered);
+        });
+
+        // Category Filter Event Listener
+        document.getElementById('categoryFilter').addEventListener('change', (e) => {
+            const selectedCategory = e.target.value;
+            if (selectedCategory === 'all') {
+                renderProducts(allProducts);
+            } else {
+                const filtered = allProducts.filter(p => p.category === selectedCategory);
+                renderProducts(filtered);
+            }
+        });
+
+        // Load everything when the page opens
+        window.onload = fetchProducts;
+    </script>
+</body>
+</html>
