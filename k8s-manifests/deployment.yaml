@@ -5,7 +5,7 @@ metadata:
   labels:
     app: product-service
 spec:
-  replicas: 2 # Let's run 2 copies of your app for high availability!
+  replicas: 2
   selector:
     matchLabels:
       app: product-service
@@ -16,12 +16,25 @@ spec:
     spec:
       containers:
       - name: product-service-container
-        # Notice we are using YOUR exact image from Docker Hub here!
         image: sumit0004/product-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
-        # Pointing the app to our local machine's database
         - name: DB_HOST
           value: "host.minikube.internal"
+        
+        # --- NEW: SELF-HEALING PROBES ---
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 10 # Wait 10 seconds before checking the first time
+          periodSeconds: 15       # Check every 15 seconds after that
+          
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 5  # Check quickly to see if it's ready for traffic
+          periodSeconds: 5
