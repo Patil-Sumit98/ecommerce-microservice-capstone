@@ -1,6 +1,4 @@
-from ast import Return
-
-from flask import Flask, jsonify , render_template
+from flask import Flask, jsonify, render_template
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
@@ -19,10 +17,6 @@ DB_USER = os.environ.get("DB_USER", "user")
 DB_PASSWORD = os.environ.get("DB_PASSWORD", "password")
 
 def get_db_connection():
-    # Serve the Frontend UI
-    @app.route('/')
-    def home():
-        return render_template('index.html')
     try:
         conn = psycopg2.connect(
             host=DB_HOST,
@@ -35,6 +29,11 @@ def get_db_connection():
     except Exception as e:
         app.logger.error(f"Database connection failed: {e}")
         return None
+
+# --- NEW FRONTEND UI ROUTE ---
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 # Health Check Endpoint
 @app.route('/healthz', methods=['GET'])
