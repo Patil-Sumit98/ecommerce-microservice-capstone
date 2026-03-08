@@ -7,15 +7,15 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # --- NEW: AUTOMATED TESTING PHASE ---
+  # --- STAGE 1: AUTOMATED TESTING ---
   test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
 
@@ -28,22 +28,22 @@ jobs:
       run: |
         pytest test_app.py
 
-  # --- EXISTING: BUILD AND PUSH PHASE ---
+  # --- STAGE 2: BUILD AND PUSH ---
   build-and-push:
-    needs: test # This tells GitHub to ONLY run if the 'test' job passes!
+    needs: test # Won't run unless the test job passes!
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       with:
         context: .
         push: true
