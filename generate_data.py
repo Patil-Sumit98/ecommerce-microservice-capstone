@@ -5,7 +5,7 @@ import os
 
 fake = Faker()
 
-def generate_product_data(num_products=100):
+def generate_product_data(num_products=1000):
     products = []
     categories = ['Electronics', 'Apparel', 'Home Goods', 'Books', 'Toys', 'Groceries', 'Beauty']
     
